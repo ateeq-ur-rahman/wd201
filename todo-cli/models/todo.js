@@ -1,7 +1,7 @@
 // models/todo.js
 "use strict";
-const { Model, Op } = require("sequelize");
-//import {Op} from "sequelize";
+const { Op } = require("sequelize");
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Todo extends Model {
     /**
@@ -16,76 +16,80 @@ module.exports = (sequelize, DataTypes) => {
       console.log("My Todo list \n");
 
       console.log("Overdue");
+      // FILL IN HERE
+      const overdueLists = await Todo.overdue();
       console.log(
-        (await Todo.overdue())
-          .map((todo) => {
-            return todo.displayableString();
-          })
-          .join("\n")
+        overdueLists.map((data) => data.displayableString()).join("\n")
       );
       console.log("\n");
 
       console.log("Due Today");
-      console.log(
-        (await Todo.dueToday())
-          .map((todo) => todo.displayableString())
-          .join("\n")
-      );
+      // FILL IN HERE
+
+      const dueTodayLists = await Todo.dueToday();
+      console.log(dueTodayLists.map((data) => data.displayableString()).join("\n"));
       console.log("\n");
 
       console.log("Due Later");
+      // FILL IN HERE
+      const dueLaterLists = await Todo.dueLater();
       console.log(
-        (await Todo.dueLater())
-          .map((todo) => todo.displayableString())
-          .join("\n")
+        dueLaterLists.map((data) => data.displayableString()).join("\n")
       );
     }
 
     static async overdue() {
-      return await Todo.findAll({
+      // FILL IN HERE TO RETURN OVERDUE ITEMS
+      return Todo.findAll({
         where: {
-          dueDate: { [Op.lt]: new Date().toLocaleDateString("en-CA") },
+          dueDate: {
+            [Op.lt]: new Date(),
+          },
         },
       });
     }
 
     static async dueToday() {
-      // fill in here to return items due today
-      return await Todo.findAll({
+      // FILL IN HERE TO RETURN ITEMS DUE tODAY
+      return Todo.findAll({
         where: {
-          dueDate: { [Op.eq]: new Date().toLocaleDateString("en-CA") },
+          dueDate: {
+            [Op.eq]: new Date(),
+          },
         },
+        order: [["id", "ASC"]],
       });
     }
 
     static async dueLater() {
-      // fill in here to return items due later
-      return await Todo.findAll({
+      // FILL IN HERE TO RETURN ITEMS DUE LATER
+      return Todo.findAll({
         where: {
-          dueDate: { [Op.gt]: new Date().toLocaleDateString("en-CA") },
+          dueDate: {
+            [Op.gt]: new Date(),
+          },
         },
+        order: [["id", "ASC"]],
       });
     }
 
     static async markAsComplete(id) {
-      // fill in here to mark an item as complete
-      await Todo.update(
+      // FILL IN HERE TO MARK AN ITEM AS COMPLETE
+      return await Todo.update(
         { completed: true },
         {
-          where: {
-            id: id,
-          },
+          where: { id: id },
         }
       );
     }
 
     displayableString() {
       let checkbox = this.completed ? "[x]" : "[ ]";
-      return `${this.id}. ${checkbox} ${this.title.trim()} ${
-        this.dueDate == new Date().toLocaleDateString("en-CA")
+      let date =
+        this.dueDate === new Date().toLocaleDateString("en-CA")
           ? ""
-          : this.dueDate
-      }`.trim();
+          :` ${this.dueDate}`;
+      return `${this.id}. ${checkbox} ${this.title}${date}`;
     }
   }
   Todo.init(
