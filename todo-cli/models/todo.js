@@ -1,13 +1,9 @@
 "use strict";
 const { Op } = require("sequelize");
 const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Todo extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static async addTask(params) {
       return await Todo.create(params);
     }
@@ -24,7 +20,9 @@ module.exports = (sequelize, DataTypes) => {
 
       console.log("Due Today");
       const dueTodayLists = await Todo.dueToday();
-      console.log(dueTodayLists.map((data) => data.displayableString()).join("\n"));
+      console.log(
+        dueTodayLists.map((data) => data.displayableString()).join("\n")
+      );
       console.log("\n");
 
       console.log("Due Later");
@@ -79,21 +77,21 @@ module.exports = (sequelize, DataTypes) => {
       let checkbox = this.completed ? "[x]" : "[ ]";
       let date = "";
       if (this.dueDate) {
-         if (this.completed && this.dueDate <= new Date()) {
-             // Completed and past-due todos should display the due date
-             date = ` ${this.dueDate}`;
-         } else if (!this.completed && this.dueDate.getTime() === new Date().setHours(0, 0, 0, 0)) {
+        if (this.completed && this.dueDate <= new Date()) {
+          // Completed and past-due todos should display the due date
+          date = ` ${this.dueDate}`;
+        } else if (!this.completed && this.dueDate.getTime() === new Date().setHours(0, 0, 0, 0)) {
           // Incomplete todos due today should not display the due date
           date = "";
-        }else {
-         // All other todos should display the due date
-         date = ` ${this.dueDate}`;
+        } else {
+          // All other todos should display the due date
+          date = ` ${this.dueDate}`;
+        }
+      }
+      return `${this.id}. ${checkbox} ${this.title}${date}`;
     }
   }
-  return `${this.id}. ${checkbox} ${this.title}${date}`;
-}
 
-  }
   Todo.init(
     {
       title: DataTypes.STRING,
@@ -105,5 +103,6 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Todo",
     }
   );
+
   return Todo;
 };
