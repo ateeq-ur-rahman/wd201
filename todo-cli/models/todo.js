@@ -1,92 +1,97 @@
-// models/todo.js
-'use strict';
-const { Model, Op } = require('sequelize');
-
+"use strict";
+const { Model, Op } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Todo extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
     static async addTask(params) {
       return await Todo.create(params);
     }
-
     static async showList() {
-      console.log("My Todo-list\n");
+      console.log("My Todo list \n");
 
       console.log("Overdue");
-      const overdue = await Todo.overdue();
-      overdue.forEach((todo) => console.log(todo.displayableString()));
+
+      const overdueItems = await Todo.overdue();
+      console.log(
+        overdueItems.map((item) => item.displayableString()).join("\n")
+      );
       console.log("\n");
 
       console.log("Due Today");
-      const dueToday = await Todo.dueToday();
-      dueToday.forEach((todo) => console.log(todo.displayableString()));
+
+      const dueItems = await Todo.dueToday();
+      console.log(dueItems.map((item) => item.displayableString()).join("\n"));
       console.log("\n");
 
       console.log("Due Later");
-      const dueLater = await Todo.dueLater();
-      dueLater.forEach((todo) => console.log(todo.displayableString()));
+      const dueLaterItems = await Todo.dueLater();
+      console.log(
+        dueLaterItems.map((item) => item.displayableString()).join("\n")
+      );
     }
 
     static async overdue() {
-      return await Todo.findAll({
+      // FILL IN HERE TO RETURN OVERDUE ITEMS
+      return Todo.findAll({
         where: {
           dueDate: {
             [Op.lt]: new Date(),
+            completed: false
           },
-          completed: true,
         },
-        order: [['dueDate', 'ASC']],
+        order: [["id", "ASC"]],
       });
     }
 
     static async dueToday() {
-      const today = new Date();
-
-      return await Todo.findAll({
+      // FILL IN HERE TO RETURN ITEMS DUE tODAY
+      return Todo.findAll({
         where: {
           dueDate: {
-            [Op.gte]: today,
-            [Op.lt]: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+            [Op.eq]: new Date(),
           },
-          completed: false,
         },
-        order: [['dueDate', 'ASC']],
+        order: [["id", "ASC"]],
       });
     }
 
     static async dueLater() {
-      const today = new Date();
-
-      return await Todo.findAll({
+      // FILL IN HERE TO RETURN ITEMS DUE LATER
+      return Todo.findAll({
         where: {
           dueDate: {
-            [Op.gte]: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+            [Op.gt]: new Date(),
           },
-          completed: false,
         },
-        order: [['dueDate', 'ASC']],
+        order: [["id", "ASC"]],
       });
     }
 
     static async markAsComplete(id) {
-      const todo = await Todo.findByPk(id);
-      todo.completed = true;
-      await todo.save();
+      // FILL IN HERE TO MARK AN ITEM AS COMPLETE
+      return Todo.update(
+        { completed: true },
+        {
+          where: {
+            id,
+          },
+        }
+      );
     }
 
     displayableString() {
       let checkbox = this.completed ? "[x]" : "[ ]";
-      let dateString = "";
-      if (!this.completed) {
-        if (this.dueDate < new Date()) {
-          dateString = this.dueDate.toDateString();
-        } else if (this.dueDate > new Date(this.dueDate.getFullYear(), this.dueDate.getMonth(), this.dueDate.getDate())) {
-          dateString = this.dueDate.toDateString();
-        }
-      }
-      return `${this.id}. ${checkbox} ${this.title} ${dateString}`;
+      let date =
+        this.dueDate === new Date().toLocaleDateString("en-CA")
+          ? ""
+          : this.dueDate;
+      return `${this.id}. ${checkbox} ${this.title} ${date}`.trim();
     }
-  };
-
+  }
   Todo.init(
     {
       title: DataTypes.STRING,
@@ -95,9 +100,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: 'Todo',
+      modelName: "Todo",
     }
   );
-
   return Todo;
 };
