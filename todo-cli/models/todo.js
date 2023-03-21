@@ -18,12 +18,12 @@ module.exports = (sequelize, DataTypes) => {
 
       console.log("Due Today");
       const dueToday = await Todo.dueToday();
-      dueToday.forEach((todo) => console.log(todo.displayableStringWithoutDate()));
+      dueToday.forEach((todo) => console.log(todo.displayableString()));
       console.log("\n");
 
       console.log("Due Later");
       const dueLater = await Todo.dueLater();
-      dueLater.forEach((todo) => console.log(todo.displayableStringWithoutDate()));
+      dueLater.forEach((todo) => console.log(todo.displayableString()));
     }
 
     static async overdue() {
@@ -32,9 +32,7 @@ module.exports = (sequelize, DataTypes) => {
           dueDate: {
             [Op.lt]: new Date(),
           },
-          completed: {
-            [Op.or]: [false, null],
-          },
+          completed: true,
         },
         order: [['dueDate', 'ASC']],
       });
@@ -42,18 +40,14 @@ module.exports = (sequelize, DataTypes) => {
 
     static async dueToday() {
       const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
 
       return await Todo.findAll({
         where: {
           dueDate: {
             [Op.gte]: today,
-            [Op.lt]: tomorrow,
+            [Op.lt]: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
           },
-          completed: {
-            [Op.or]: [false, null],
-          },
+          completed: false,
         },
         order: [['dueDate', 'ASC']],
       });
@@ -61,17 +55,13 @@ module.exports = (sequelize, DataTypes) => {
 
     static async dueLater() {
       const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
 
       return await Todo.findAll({
         where: {
           dueDate: {
-            [Op.gte]: tomorrow,
+            [Op.gte]: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
           },
-          completed: {
-            [Op.or]: [false, null],
-          },
+          completed: false,
         },
         order: [['dueDate', 'ASC']],
       });
@@ -85,24 +75,23 @@ module.exports = (sequelize, DataTypes) => {
 
     displayableString() {
       let checkbox = this.completed ? "[x]" : "[ ]";
-      let dateString = this.dueDate.toDateString();
+      let dateString = "";
+      if (!this.completed) {
+        if (this.dueDate < new Date()) {
+          dateString = this.dueDate.toDateString();
+        } else if (this.dueDate > new Date(this.dueDate.getFullYear(), this.dueDate.getMonth(), this.dueDate.getDate())) {
+          dateString = this.dueDate.toDateString();
+        }
+      }
       return `${this.id}. ${checkbox} ${this.title} ${dateString}`;
     }
-
-    displayableStringWithoutDate() {
-      let checkbox = this.completed ? "[x]" : "[ ]";
-      return `${this.id}. ${checkbox} ${this.title}`;
-    }
-  }
+  };
 
   Todo.init(
     {
       title: DataTypes.STRING,
       dueDate: DataTypes.DATEONLY,
-      completed: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+      completed: DataTypes.BOOLEAN,
     },
     {
       sequelize,
