@@ -1,4 +1,3 @@
-// models/todo.js
 "use strict";
 const { Op } = require("sequelize");
 const { Model } = require("sequelize");
@@ -12,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
     static async addTask(params) {
       return await Todo.create(params);
     }
+
     static async showList() {
       console.log("My Todo list \n");
 
       console.log("Overdue");
-      // FILL IN HERE
       const overdueLists = await Todo.overdue();
       console.log(
         overdueLists.map((data) => data.displayableString()).join("\n")
@@ -24,14 +23,11 @@ module.exports = (sequelize, DataTypes) => {
       console.log("\n");
 
       console.log("Due Today");
-      // FILL IN HERE
-
       const dueTodayLists = await Todo.dueToday();
       console.log(dueTodayLists.map((data) => data.displayableString()).join("\n"));
       console.log("\n");
 
       console.log("Due Later");
-      // FILL IN HERE
       const dueLaterLists = await Todo.dueLater();
       console.log(
         dueLaterLists.map((data) => data.displayableString()).join("\n")
@@ -39,7 +35,6 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static async overdue() {
-      // FILL IN HERE TO RETURN OVERDUE ITEMS
       return Todo.findAll({
         where: {
           dueDate: {
@@ -50,7 +45,6 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static async dueToday() {
-      // FILL IN HERE TO RETURN ITEMS DUE tODAY
       return Todo.findAll({
         where: {
           dueDate: {
@@ -62,7 +56,6 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static async dueLater() {
-      // FILL IN HERE TO RETURN ITEMS DUE LATER
       return Todo.findAll({
         where: {
           dueDate: {
@@ -74,7 +67,6 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static async markAsComplete(id) {
-      // FILL IN HERE TO MARK AN ITEM AS COMPLETE
       return await Todo.update(
         { completed: true },
         {
@@ -85,12 +77,22 @@ module.exports = (sequelize, DataTypes) => {
 
     displayableString() {
       let checkbox = this.completed ? "[x]" : "[ ]";
-      let date =
-        this.dueDate === new Date().toLocaleDateString("en-CA")
-          ? ""
-          :` ${this.dueDate}`;
-      return `${this.id}. ${checkbox} ${this.title}${date}`;
+      let date = "";
+      if (this.dueDate) {
+         if (this.completed && this.dueDate <= new Date()) {
+             // Completed and past-due todos should display the due date
+             date = ` ${this.dueDate}`;
+         } else if (!this.completed && this.dueDate.getTime() === new Date().setHours(0, 0, 0, 0)) {
+          // Incomplete todos due today should not display the due date
+          date = "";
+        }else {
+         // All other todos should display the due date
+         date = ` ${this.dueDate}`;
     }
+  }
+  return `${this.id}. ${checkbox} ${this.title}${date}`;
+}
+
   }
   Todo.init(
     {
