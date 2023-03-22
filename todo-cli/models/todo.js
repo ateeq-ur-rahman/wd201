@@ -14,7 +14,12 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     displayableString(){
-      return `${this.id}. ${this.completed?'[x]':'[ ]'} ${this.title} ${this.dueDate === new Date().toLocaleDateString("en-CA")?"":this.dueDate}`.trim();
+      if (!this.completed && this.dueDate === new Date().toLocaleDateString("en-CA")) {
+        return `${this.id}. [ ] ${this.title}`.trim();
+      }
+
+      // For all other todos, including incomplete todos due later and completed todos due today or later, use the original display string
+      return `${this.id}. ${this.completed ? '[x]' : '[ ]'} ${this.title} ${this.dueDate}`.trim();
     }
 
     static async showList(){
