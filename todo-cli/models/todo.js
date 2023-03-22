@@ -14,18 +14,8 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     displayableString(){
-     const isPastDue = this.dueDate < new Date().toLocaleDateString("en-CA");
-  const isFuture = this.dueDate > new Date().toLocaleDateString("en-CA");
-  const isDueToday = this.dueDate === new Date().toLocaleDateString("en-CA");
-
-  if (this.completed && isPastDue) {
-    return `${this.id}. [x] ${this.title} ${this.dueDate}`;
-  } else if (!this.completed && isFuture) {
-    return `${this.id}. [ ] ${this.title} ${this.dueDate}`;
-  } else {
-    const dateString = isDueToday && !this.completed ? " (today)" : "";
-    return `${this.id}. ${this.completed ? '[x]' : '[ ]'} ${this.title}${dateString}`.trim();
-  }
+    var today =new Date().toISOString().slice(0,10);
+    return  `${this.id}. ${this.completed ? "[x]" : "[ ]"} ${this.title} ${this.dueDate === today ? "" : this.dueDate}`.trim();
     }
 
     static async showList(){
