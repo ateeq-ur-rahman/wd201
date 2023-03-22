@@ -14,14 +14,17 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     displayableString(){
-      let dateString = "";
-      if (this.completed) {
-        dateString = "";
+      const isPastDue = this.dueDate < new Date().toLocaleDateString("en-CA");
+      const isFuture = this.dueDate > new Date().toLocaleDateString("en-CA");
+      if (this.completed && isPastDue) {
+        return `${this.id}. [x] ${this.title} ${this.dueDate}`;
       } 
-      else if (this.dueDate === new Date().toLocaleDateString("en-CA")) {
-        dateString = " (today)";
+      else if (!this.completed && isFuture) {
+        return `${this.id}. [ ] ${this.title} ${this.dueDate}`;
       }
-      return `${this.id}. ${this.completed ? '[x]' : '[ ]'} ${this.title}${dateString}`.trim();
+      else{
+        return `${this.id}. ${this.completed ? '[x]' : '[ ]'} ${this.title}`;
+      }
     }
 
     static async showList(){
